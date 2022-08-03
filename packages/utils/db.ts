@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import config from 'config';
 
 let db;
-
+export const limit = 10;
 export function connect() {
   db = new Client(config.db);
   return db.connect();

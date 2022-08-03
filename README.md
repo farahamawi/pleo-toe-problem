@@ -56,3 +56,120 @@ The command above will run the following test suites sequentially:
 
 
 Happy hacking 😁!
+
+_____________________________________________________________________________________________________________
+# Notes from Farah.A
+
+## Prerequests
+same as above
+
+## Installation
+* required to run one of the below commands again as new packages were added
+    ```bash
+    yarn i
+    npm i
+    ```
+* public/private keys
+    * using the following command, please generate new public/private ssh key.
+        ```bash
+        ssh-keygen
+        ```
+    * save the public key in node-challenge/certs/public.key
+    * save the private key in node-challenge/certs/private.key
+* DB migration
+    * create `challenge` database
+    * from the root, run the following command to load the new SQL file
+        ```bash
+        psql challenge < dump.sql
+        ```
+
+## New packages
+###### "@types/bcrypt": "^5.0.0"
+to support password hash
+###### "jsonwebtoken": "^8.5.1"
+to support the authorization layer
+
+## bonus
+* Two extra fields were added to the users table (email & pass).
+* Login endpoint was added (API details mentioned below).
+    * As signup API wasn't introduced in the new code, required to add email & pass to the users table.
+    * Password should be hashed before added to the DB (use this website to hash your password using becrypt https://bcrypt-generator.com/)
+    * Login is now returning `Password Grant Flow`, future enhancement is to change to `Authorization Code Flow`.
+    * Login API should return a valid access token in case of 200 response code.
+* New middleware was added to the code to support authorization
+    * All APIs have an authrization layer, hence Bearer access token should be added in the Authorization header.
+    * A valid access-token can be taken from the login API.
+    * Access-Token expiry = 10 min (can be changed from node-challenge/packages/utils/jwt.ts)
+    * supported algorithm: RS256
+
+# Lets run the code
+Run the following command
+```bash
+NODE_DEBUG=DEBUG yarn start
+```
+
+# APIs details
+
+##### POST user login
+###### request
+curl --location --request POST 'http://localhost:9001/user/v1/login' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "email": "amawifarah@gmail.com",
+    "password": "Admin@123"
+}'
+###### response
+{
+    "access_token": "JWT",
+    "expires_in": "10m",
+    "token_type": "Bearer"
+}
+
+_____________________________________________________________________________
+##### GET user details
+###### request
+curl --location --request GET 'http://localhost:9001/user/v1/user_id/{USER_ID}' \
+--header 'Authorization: Bearer JWT'
+###### response
+{
+    "id": "da140a29-ae80-4f0e-a62d-6c2d2bc8a474",
+    "email": "jeppe@pleo.com",
+    "first_name": "Jeppe",
+    "last_name": "Rindom",
+    "company_name": "pleo",
+    "ssn": "1"
+}
+_____________________________________________________________________________
+##### GET user expenses
+###### request
+curl --location --request GET 'http://localhost:9001/expense/v1/user_id/{USER_ID}?page=1&sort=asc&order_by=date_created' \
+--header 'Authorization: Bearer JWT'
+###### response
+[
+    {
+        "id": "f20866f9-7d46-45f2-822c-4b568e216a13",
+        "merchant_name": "Donkey Republic",
+        "amount_in_cents": 6000,
+        "status": "processed",
+        "user_id": "da140a29-ae80-4f0e-a62d-6c2d2bc8a474"
+    },
+    {
+        "id": "314d54f4-8a5f-4c1d-b735-426b54794a44",
+        "merchant_name": "Sliders",
+        "amount_in_cents": 12000,
+        "status": "processed",
+        "user_id": "da140a29-ae80-4f0e-a62d-6c2d2bc8a474"
+    },
+]
+
+| Query Param | Default value | Note |
+-------------|-------------|-------------|
+| page | 1 | page limit can be changed from (node-challenge/packages/utils/db.ts) |
+| sort | desc | values (desc, asc)  |
+| order_by | date_created | You can choose any value from inside the expenses table |
+
+
+
+
+
+

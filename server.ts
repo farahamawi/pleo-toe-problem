@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import Logger from '@nc/utils/logging';
 import security from './middleware/security';
 import { router as userRoutes } from '@nc/domain-user';
+import { router as expenseRoutes } from '@nc/domain-expense';
 import { createServer as createHTTPServer, Server } from 'http';
 import { createServer as createHTTPSServer, Server as SecureServer } from 'https';
 
@@ -17,6 +18,8 @@ server.ready = false;
 gracefulShutdown(server);
 
 app.use(helmet());
+app.use(express.json());
+
 app.get('/readycheck', function readinessEndpoint(req, res) {
   const status = (server.ready) ? 200 : 503;
   res.status(status).send(status === 200 ? 'OK' : 'NOT OK');
@@ -30,14 +33,18 @@ app.use(context);
 app.use(security);
 
 app.use('/user', userRoutes);
+app.use('/expense', expenseRoutes);
 
 app.use(function(err, req, res) {
   res.status(500).json(err);
 });
-
 server.listen(config.port, () => {
   server.ready = true;
   logger.log(`Server started on port ${config.port}`);
 });
 
 export default server;
+
+
+
+//example //http://localhost:9001/user/v1/get-user-details?userId=da140a29-ae80-4f0e-a62d-6c2d2bc8a474

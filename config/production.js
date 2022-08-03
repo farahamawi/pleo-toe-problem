@@ -10,4 +10,7 @@ module.exports = {
     appKill: 30000,
     serverClose: 15000,
   },
+  auth: {
+    jwtSecret: 'to be changed'
+  }
 };
